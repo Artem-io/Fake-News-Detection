@@ -1,0 +1,65 @@
+{
+  "datasets_used": [
+    "fever",
+    "liar",
+    "welfake",
+    "fakenewsnet"
+  ],
+  "total_samples": 12210,
+  "train_samples": 9768,
+  "val_samples": 1221,
+  "test_samples": 1221,
+  "test_accuracy": 0.7698607698607699,
+  "test_f1": 0.7721005677210057,
+  "test_precision": 0.7640449438202247,
+  "test_recall": 0.780327868852459,
+  "config": {
+    "mode": "test",
+    "sample_per_dataset": "5000",
+    "max_length": "128",
+    "batch_size": "16",
+    "epochs": "1",
+    "learning_rate": "2e-05",
+    "warmup_ratio": "0.1",
+    "weight_decay": "0.01",
+    "fp16": "True",
+    "save_steps": "500",
+    "eval_steps": "250",
+    "logging_steps": "50",
+    "output_dir": "./distilbert_fakenews_test",
+    "estimated_time": "15-20 minut na T4 GPU"
+  },
+  "deduplication_stats": {
+    "welfake": {
+      "original": 5000,
+      "final": 4891,
+      "removed": 109,
+      "removed_pct": "2.2%"
+    },
+    "liar": {
+      "original": 5000,
+      "final": 4997,
+      "removed": 3,
+      "removed_pct": "0.1%"
+    },
+    "fakenewsnet": {
+      "original": 422,
+      "final": 289,
+      "removed": 133,
+      "removed_pct": "31.5%"
+    },
+    "fever": {
+      "original": 5000,
+      "final": 4785,
+      "removed": 215,
+      "removed_pct": "4.3%"
+    }
+  },
+  "training_date": "2026-03-14T10:16:17.834758",
+  "accuracy_per_dataset": {
+    "fever": 0.7745358090185677,
+    "welfake": 0.9448441247002398,
+    "liar": 0.5975308641975309,
+    "fakenewsnet": 0.5454545454545454
+  }
+}

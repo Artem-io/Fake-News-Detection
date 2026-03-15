@@ -1,0 +1,15 @@
+pydantic
+transformers
+torch
+datasets
+scikit-learn
+pandas
+numpy
+fastapi
+uvicorn
+python-dotenv
+spacy
+textstat
+vaderSentiment
+requests
+lime
