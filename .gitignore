@@ -1,2 +1,6 @@
 articles
 backend/.env
+fake_news_datasets
+backend/final_model
+.idea
+__pycache__/

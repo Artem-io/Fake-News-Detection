@@ -1,11 +1,9 @@
 import os
 from contextlib import asynccontextmanager
-
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import spacy
-
 from classifier import FakeNewsClassifier
 from schemas import AnalyzeRequest, AnalyzeResponse
 from source_verifier import SourceVerifier
