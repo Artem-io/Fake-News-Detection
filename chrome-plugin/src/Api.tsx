@@ -2,46 +2,61 @@ import axios from "axios";
 
 const BASE_URL = "http://127.0.0.1:8000";
 
-export interface SourceVerification {
-  domain: string;
-  status: string;
-  label: number;
+export interface ModuleDecision {
+  module: string;
+  real_probability: number;
+  effective_weight: number;
+  has_data: boolean;
+  reasoning: string;
 }
 
-export interface FactCheckResult {
-  claim_text: string;
-  found: boolean;
-  rating: string;
-  publisher: string;
-  url: string;
-  title: string;
-  textual_rating: string;
+export interface LinguisticFlag {
+  code: string;
+  description: string;
+  positive: boolean;
 }
 
-export interface FactCheck {
-  claims_extracted: number;
-  claims_checked: number;
-  claims_with_results: number;
-  overall_score: number;
-  results: FactCheckResult[];
+export interface LinguisticSignal {
+  label: string;
+  value: string;
+  positive: boolean | null;
 }
 
-export interface LinguisticAnalysis {
+export interface LinguisticExplanation {
+  verdict: string;
+  verdict_level: string;
+  signals: LinguisticSignal[];
+}
+
+export interface Linguistic {
   score: number;
-  confidence: number;
-  flags: string[];
-  explanation: string;
-  details: Record<string, unknown>;
+  flags: LinguisticFlag[];
+  explanation: LinguisticExplanation;
+}
+
+export interface MatchedSource {
+  title: string;
+  url: string;
+  source: string;
+  published_at: string;
+  similarity: number;
+}
+
+export interface CrossSource {
+  verdict: string;
+  sources_found: number;
+  matched_sources: MatchedSource[];
 }
 
 export interface AnalysisResult {
   prediction: string;
-  confidence: number;
-  fake_probability: number;
   real_probability: number;
-  source_verification: SourceVerification;
-  fact_check: FactCheck;
-  linguistic_analysis: LinguisticAnalysis;
+  fake_probability: number;
+  decisions: ModuleDecision[];
+  source_status: string;
+  source_domain: string;
+  linguistic: Linguistic;
+  cross_source: CrossSource;
 }
 
 export async function analyzeText(text: string, url: string): Promise<AnalysisResult> {

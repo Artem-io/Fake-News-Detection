@@ -12,4 +12,3 @@ spacy
 textstat
 vaderSentiment
 requests
-lime

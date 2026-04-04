@@ -38,11 +38,7 @@ class SourceVerifier:
         return url
 
     def _lookup(self, domain: str) -> tuple[str, int | None]:
-        """Try exact match, then progressively strip subdomains.
-
-        e.g. health.news.nytimes.com -> news.nytimes.com -> nytimes.com
-        Returns (matched_domain, label) or (original_domain, None).
-        """
+        # Try exact match then remove subdomains
         parts = domain.split(".")
         for i in range(len(parts) - 1):
             candidate = ".".join(parts[i:])

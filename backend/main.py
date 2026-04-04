@@ -1,4 +1,3 @@
-import os
 from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -7,19 +6,19 @@ import spacy
 from classifier import FakeNewsClassifier
 from schemas import AnalyzeRequest, AnalyzeResponse
 from source_verifier import SourceVerifier
-from fact_checker import FactChecker
 from linguistic_analyzer import LinguisticAnalyzer
+from source_comparator import SourceComparator
+from aggregator import aggregate
 
 load_dotenv()
 
-# Shared spaCy model — loaded once, used by all components
 shared_nlp = spacy.load("en_core_web_sm", disable=["lemmatizer"])
 shared_nlp.max_length = 1_500_000
 
 classifier: FakeNewsClassifier = None
 verifier = SourceVerifier()
-fact_checker = FactChecker(api_key=os.getenv("GOOGLE_FACTCHECK_API_KEY", ""), nlp=shared_nlp)
 linguistic_analyzer = LinguisticAnalyzer(nlp=shared_nlp)
+source_comparator = SourceComparator(nlp=shared_nlp)
 
 
 @asynccontextmanager
@@ -41,19 +40,41 @@ app.add_middleware(
 
 @app.post("/analyze", response_model=AnalyzeResponse)
 async def analyze(request: AnalyzeRequest):
-    model_result = classifier.explain(request.text)
+    model_result = classifier.predict(request.text)
     source_result = verifier.check(request.url)
-    fact_check_result = fact_checker.check_article(request.text)
     ling_result = linguistic_analyzer.analyze(request.text)
+    cross_source_result = source_comparator.compare(request.text)
+
+    aggregated = aggregate(
+        model_result=model_result,
+        source_result=source_result,
+        ling_result=ling_result,
+    )
+
     return {
-        **model_result,
-        "source_verification": source_result,
-        "fact_check": fact_check_result.to_dict(),
-        "linguistic_analysis": {
+        "prediction": aggregated.prediction,
+        "real_probability": aggregated.real_probability,
+        "fake_probability": aggregated.fake_probability,
+        "decisions": aggregated.decisions,
+        "source_status": source_result.get("status", "NOT_FOUND"),
+        "source_domain": source_result.get("domain", ""),
+        "linguistic": {
             "score": ling_result.score,
-            "confidence": ling_result.confidence,
             "flags": ling_result.flags,
             "explanation": ling_result.explanation,
-            "details": ling_result.details,
+        },
+        "cross_source": {
+            "verdict": cross_source_result.verdict,
+            "sources_found": cross_source_result.sources_found,
+            "matched_sources": [
+                {
+                    "title": s.title,
+                    "url": s.url,
+                    "source": s.source,
+                    "published_at": s.published_at,
+                    "similarity": s.similarity,
+                }
+                for s in cross_source_result.matched_sources
+            ],
         },
     }

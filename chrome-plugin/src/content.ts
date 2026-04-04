@@ -63,17 +63,30 @@ function cleanExtractedText(text: string): string {
     .trim();
 }
 
+function paragraphFallback(): string {
+  // Last resort: collect all <p> text longer than 40 chars, skipping nav/UI noise.
+  return Array.from(document.querySelectorAll('p'))
+    .map((p) => p.textContent?.trim() ?? '')
+    .filter((t) => t.length > 40)
+    .join('\n\n');
+}
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'EXTRACT_ARTICLE') {
 
     try {
-      // Clone the document — Readability mutates the DOM it receives
-      const documentClone = document.cloneNode(true) as Document;
+      // Attempt 1: Readability with pre-cleaned DOM
+      const cleanedClone = document.cloneNode(true) as Document;
+      cleanDom(cleanedClone);
+      let article = new Readability(cleanedClone).parse();
 
-      // Strip noisy elements before Readability parses
-      cleanDom(documentClone);
-
-      const article = new Readability(documentClone).parse();
+      // Attempt 2: Readability on raw DOM — cleanDom may have stripped content the
+      // heuristic needed to identify the article body (e.g. CounterPunch wraps
+      // its article in a <header> which cleanDom removes).
+      if (!article) {
+        const rawClone = document.cloneNode(true) as Document;
+        article = new Readability(rawClone).parse();
+      }
 
       if (article) {
         sendResponse({
@@ -87,12 +100,30 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           length: article.length,
           lang: article.lang,
         });
-      } else {
-        sendResponse({
-          success: false,
-          error: `Readability returned null. URL: ${window.location.href}, title: ${document.title}, body length: ${document.body?.innerHTML.length ?? 0}`,
-        });
+        return true;
       }
+
+      // Attempt 3: manual paragraph extraction
+      const fallbackText = paragraphFallback();
+      if (fallbackText.length > 200) {
+        sendResponse({
+          success: true,
+          title: document.title,
+          byline: '',
+          content: '',
+          textContent: cleanExtractedText(fallbackText),
+          excerpt: '',
+          siteName: '',
+          length: fallbackText.length,
+          lang: document.documentElement.lang || '',
+        });
+        return true;
+      }
+
+      sendResponse({
+        success: false,
+        error: 'Could not extract article content from this page.',
+      });
     } catch (err) {
       sendResponse({
         success: false,
