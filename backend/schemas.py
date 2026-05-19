@@ -4,6 +4,7 @@ from pydantic import BaseModel
 class AnalyzeRequest(BaseModel):
     text: str
     url: str
+    title: str = ""
 
 
 class ModuleDecision(BaseModel):
@@ -36,6 +37,7 @@ class LinguisticAnalysis(BaseModel):
     score: float
     flags: list[LinguisticFlag]
     explanation: LinguisticExplanation
+    headline_consistency: float | None = None
 
 
 

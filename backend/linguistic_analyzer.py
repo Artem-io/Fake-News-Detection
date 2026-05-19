@@ -1,6 +1,7 @@
 import re
+import warnings
 from dataclasses import dataclass, field
-from typing import List, Dict
+from typing import List, Dict, Optional
 from collections import Counter
 import spacy
 import textstat
@@ -173,6 +174,8 @@ class LinguisticFeatures:
     named_entity_density: float = 0.0
     named_entity_types: Dict[str, int] = field(default_factory=dict)
 
+    headline_consistency: Optional[float] = None  # NLI entailment score (0=inconsistent, 1=consistent)
+
     flags: List[dict] = field(default_factory=list)
 
 
@@ -181,6 +184,7 @@ class AnalysisResult:
     score: float  # 0.0 (fake) – 1.0 (reliable)
     flags: List[dict] = field(default_factory=list)
     explanation: Dict = field(default_factory=dict)
+    headline_consistency: Optional[float] = None
 
 
 
@@ -201,6 +205,21 @@ class LinguisticAnalyzer:
             self.nlp.max_length = 1_500_000
 
         self.vader = SentimentIntensityAnalyzer()
+
+        # NLI pipeline for headline-body consistency
+        # cross-encoder/nli-deberta-v3-small (~184 MB, CPU-friendly)
+        self._nli = None
+        try:
+            from transformers import pipeline as hf_pipeline
+            self._nli = hf_pipeline(
+                "text-classification",
+                model="cross-encoder/nli-deberta-v3-small",
+                top_k=None,
+                device=-1,
+            )
+            print("[LinguisticAnalyzer] NLI model loaded.")
+        except Exception as e:
+            warnings.warn(f"[LinguisticAnalyzer] NLI model unavailable — headline consistency disabled. ({e})")
 
         self.clickbait_patterns = [re.compile(p, re.IGNORECASE) for p in CLICKBAIT_PATTERNS]
         self.vague_patterns = [re.compile(p, re.IGNORECASE) for p in VAGUE_ATTRIBUTION_PATTERNS]
@@ -309,6 +328,16 @@ class LinguisticAnalyzer:
             features.named_entity_density = len(doc.ents) / len(doc)
             features.named_entity_types = dict(Counter(ent.label_ for ent in doc.ents))
 
+        # NLI headline-body consistency
+        if title and len(text) >= 50 and self._nli is not None:
+            try:
+                # premise = first ~500 chars of body; hypothesis = headline
+                result = self._nli({"text": text[:500], "text_pair": title})
+                scores = {item["label"].lower(): item["score"] for item in result}
+                features.headline_consistency = round(scores.get("entailment", 0.0), 3)
+            except Exception:
+                pass
+
         features.flags = self._generate_flags(features, title)
 
         return features
@@ -344,6 +373,8 @@ class LinguisticAnalyzer:
             flags.append({"code": "EMOTIONAL_RANT", "description": f"Extremely negative tone (VADER: {f.vader_compound:.2f}) with no entities or quotes", "positive": False})
         if f.flesch_reading_ease > 80 and f.word_count > 200:
             flags.append({"code": "VERY_SIMPLE_LANGUAGE", "description": "Written at a very simple reading level", "positive": False})
+        if f.headline_consistency is not None and f.headline_consistency < 0.25:
+            flags.append({"code": "HEADLINE_INCONSISTENCY", "description": f"Headline is not supported by article body (NLI entailment: {f.headline_consistency:.2f})", "positive": False})
 
         return flags
 
@@ -383,6 +414,14 @@ class LinguisticAnalyzer:
         if f.vader_compound < -0.7 and f.named_entity_density < 0.02 and f.quote_count == 0:
             score -= min(0.05, abs(f.vader_compound + 0.7) * 0.17)
 
+        if f.headline_consistency is not None:
+            if f.headline_consistency < 0.20:
+                score -= 0.08
+            elif f.headline_consistency < 0.35:
+                score -= 0.04
+            elif f.headline_consistency > 0.65:
+                score += 0.05
+
         # Bonuses
         if f.credibility_indicators_count > 0:
             score += min(0.15, f.credibility_indicators_count * 0.04)
@@ -408,6 +447,7 @@ class LinguisticAnalyzer:
             score=score,
             flags=f.flags,
             explanation=self._generate_explanation(f, score),
+            headline_consistency=f.headline_consistency,
         )
 
     def _generate_explanation(self, f: LinguisticFeatures, score: float) -> dict:

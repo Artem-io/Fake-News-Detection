@@ -9,7 +9,7 @@ class FakeNewsClassifier:
         self.model = DistilBertForSequenceClassification.from_pretrained(model_path)
         self.model.to(self.device)
         self.model.eval()
-        self.max_length = 256
+        self.max_length = 512
 
     def predict(self, text: str) -> dict:
         encoding = self.tokenizer(

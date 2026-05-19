@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from typing import Any
 
-
 BASE_WEIGHTS = {
     "classifier": 0.50,
     "source":     0.30,
@@ -102,7 +101,6 @@ def _source_signal(source_result: dict) -> ModuleSignal:
 
 
 def _linguistic_signal(ling_result: Any) -> ModuleSignal:
-    # linguistic score is 0.0 (fake) to 1.0 (real)
     score = ling_result.score
     flags = ling_result.flags
     flag_summary = f" Flags: {', '.join(f['code'] for f in flags[:3])}{'...' if len(flags) > 3 else ''}." if flags else ""
@@ -117,18 +115,19 @@ def _linguistic_signal(ling_result: Any) -> ModuleSignal:
 
 
 def _apply_source_override(real_prob: float, source_result: dict) -> float:
-    """
-    If the domain is well known, increase the probability
-    It prevents a biased model from fully overriding a reliable source
-    """
+    # Hard clamp based on known-reliable / known-unreliable sources
     status = source_result.get("status")
     if status == "RELIABLE":
-        # floor at 0.60 — cannot call a known-reliable source more than 40% fake
         return max(real_prob, 0.60)
     elif status == "UNRELIABLE":
-        # ceil at 0.40 — cannot call a known-unreliable source more than 40% real
         return min(real_prob, 0.40)
     return real_prob
+
+
+def _aggregate_weighted(signals: list[ModuleSignal]) -> float:
+    # Fallback: redistribute missing weights, then compute weighted sum
+    _redistribute(signals)
+    return sum(s.real_prob * s.weight for s in signals)
 
 
 def aggregate(
@@ -142,12 +141,7 @@ def aggregate(
         _linguistic_signal(ling_result),
     ]
 
-    _redistribute(signals)
-
-    # Weighted sum of real_prob across all active signals
-    real_prob = sum(s.real_prob * s.weight for s in signals)
-
-    # Source override clamp
+    real_prob = _aggregate_weighted(signals)
     real_prob = _apply_source_override(real_prob, source_result)
     real_prob = round(max(0.0, min(1.0, real_prob)), 4)
     fake_prob = round(1.0 - real_prob, 4)

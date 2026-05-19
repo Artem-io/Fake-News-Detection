@@ -1,0 +1,27 @@
+# secrets
+.env
+
+# local model weights (loaded from HF Hub at runtime)
+final_model/
+
+# python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# IDE
+.idea/
+
+# training & evaluation (not needed for the API)
+distilbert-training.ipynb
+train_meta.py
+build_test_set.py
+evaluate_modules.py
+test_articles.csv
+test_article_links.txt
+meta_features_cache.npz
+
+# runtime logs & caches
+analysis_log.jsonl
+eval_text_cache.json
