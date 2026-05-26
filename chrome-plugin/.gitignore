@@ -11,7 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
-
+chrome-plugin\FNDPlugin.zip
+chrome-plugin\Sign-check-icon.png
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

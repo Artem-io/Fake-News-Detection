@@ -73,15 +73,18 @@ class SourceComparator:
 
     def _build_query(self, text: str, title: str = "") -> str:
         if title and len(title.strip()) > 10:
-            phrases = self._extract_key_phrases(title)
-            if phrases:
-                # AND the two longest phrases only; third is optional context
-                # Short titles often only yield 1-2 phrases — don't over-constrain
-                must = phrases[:2]
-                query = " AND ".join(f'"{p}"' for p in must)
-                if len(phrases) > 2:
-                    query += f' "{phrases[2]}"'
-                return query
+            stop = {
+                "a", "an", "the", "and", "or", "but", "in", "on", "at", "to",
+                "for", "of", "with", "by", "from", "after", "before", "during",
+                "is", "are", "was", "were", "be", "been", "has", "have", "had",
+                "that", "this", "it", "he", "she", "they", "we", "his", "her",
+                "its", "as", "said", "says", "according", "also", "not", "no",
+            }
+            words = [w.strip("\"'.,;:!?()") for w in title.split()]
+            keywords = [w for w in words if w and w.lower() not in stop and len(w) > 2]
+            if keywords:
+                # TF-IDF re-ranking filters out unrelated results
+                return " OR ".join(keywords[:6])
             return title.strip()
 
         keywords = []
@@ -185,7 +188,7 @@ class SourceComparator:
 
         similarities = self._rank_by_similarity(title or text, articles)
 
-        # Pair each MatchedSource with its real domain (RSS urls are google redirects)
+        # Pair each MatchedSource with its real domain
         candidates = sorted(
             [
                 (

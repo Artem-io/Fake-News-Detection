@@ -3,11 +3,5 @@
   "name": "Fake News Detector",
   "version": "1.0.0",
   "action": { "default_popup": "index.html" },
-  "permissions": ["activeTab", "storage"],
-  "content_scripts": [
-    {
-      "matches": ["http://*/*", "https://*/*"],
-      "js": ["content.js"]
-    }
-  ]
+  "permissions": ["activeTab", "scripting", "storage"]
 }

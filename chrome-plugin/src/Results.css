@@ -18,7 +18,6 @@ body {
   padding: 32px 24px 64px;
 }
 
-/* ── Header ──────────────────────────────────────── */
 .header {
   display: flex;
   align-items: center;
@@ -70,7 +69,6 @@ body {
   flex-shrink: 0;
 }
 
-/* ── Verdict card ────────────────────────────────── */
 .verdict-card {
   border-radius: 20px;
   padding: 36px;
@@ -253,7 +251,6 @@ body {
   color: #475569;
 }
 
-/* ── Two-column grid ─────────────────────────────── */
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -261,7 +258,6 @@ body {
   margin-bottom: 16px;
 }
 
-/* ── Cards ───────────────────────────────────────── */
 .card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -280,7 +276,6 @@ body {
   margin-bottom: 16px;
 }
 
-/* ── Source card ─────────────────────────────────── */
 .source-status-row {
   display: flex;
   align-items: center;
@@ -307,7 +302,6 @@ body {
   word-break: break-all;
 }
 
-/* ── Linguistic card ─────────────────────────────── */
 .ling-score-row {
   display: flex;
   align-items: baseline;
@@ -422,7 +416,6 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Module breakdown ────────────────────────────── */
 .modules-card {
   margin-bottom: 16px;
 }
@@ -500,7 +493,6 @@ body {
   padding-top: 4px;
 }
 
-/* ── Fact check ──────────────────────────────────── */
 .fact-stats {
   display: flex;
   gap: 20px;
@@ -660,7 +652,6 @@ body {
   border: 1px solid #bfdbfe;
 }
 
-/* ── Cross-source ─────────────────────────────────── */
 .cs-header {
   display: flex;
   align-items: center;
@@ -731,7 +722,6 @@ body {
   margin-top: 4px;
 }
 
-/* ── Raw response ────────────────────────────────── */
 .raw-response-card {
   margin-bottom: 0;
 }
@@ -758,7 +748,6 @@ body {
   font-size: 14px;
 }
 
-/* ── Loading / error states ──────────────────────── */
 .loading-state,
 .no-data-state {
   display: flex;
@@ -783,7 +772,6 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* ── Responsive ──────────────────────────────────── */
 @media (max-width: 600px) {
   .grid-2 {
     grid-template-columns: 1fr;

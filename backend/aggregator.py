@@ -115,7 +115,7 @@ def _linguistic_signal(ling_result: Any) -> ModuleSignal:
 
 
 def _apply_source_override(real_prob: float, source_result: dict) -> float:
-    # Hard clamp based on known-reliable / known-unreliable sources
+    # Clamp based on known-reliable / known-unreliable sources
     status = source_result.get("status")
     if status == "RELIABLE":
         return max(real_prob, 0.60)
@@ -125,7 +125,7 @@ def _apply_source_override(real_prob: float, source_result: dict) -> float:
 
 
 def _aggregate_weighted(signals: list[ModuleSignal]) -> float:
-    # Fallback: redistribute missing weights, then compute weighted sum
+    # Redistribute missing weights
     _redistribute(signals)
     return sum(s.real_prob * s.weight for s in signals)
 

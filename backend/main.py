@@ -102,7 +102,7 @@ def _append_log(request: AnalyzeRequest, model_result, source_result, ling_resul
             "fake_probability": round(model_result["fake_probability"], 4),
             "confidence": round(model_result["confidence"], 4),
         },
-        # Domain / source
+        # Source
         "source": {
             "domain": source_result.get("domain", ""),
             "status": source_result.get("status", "NOT_FOUND"),

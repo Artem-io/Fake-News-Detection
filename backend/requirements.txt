@@ -13,3 +13,4 @@ textstat
 vaderSentiment
 requests
 huggingface_hub
+joblib

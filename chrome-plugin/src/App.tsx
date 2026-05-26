@@ -21,12 +21,32 @@ const App: React.FC = () => {
         return;
       }
 
+      const url = tab.url || '';
+      const nonArticleDomains = [
+        'youtube.com', 'youtu.be', 'twitter.com', 'x.com', 'facebook.com',
+        'instagram.com', 'reddit.com', 'tiktok.com', 'linkedin.com',
+        'google.com', 'gmail.com', 'wikipedia.org', 'amazon.com',
+        'netflix.com', 'spotify.com', 'twitch.tv', 'discord.com',
+        'github.com', 'stackoverflow.com',
+      ];
+      const isNonArticle = nonArticleDomains.some(d => url.includes(d));
+      if (isNonArticle || !url.startsWith('http')) {
+        setError('This page does not appear to be a news article.');
+        setLoading(false);
+        return;
+      }
+
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ['content.js'],
+      });
+
       const response = await chrome.tabs.sendMessage(tab.id, {
         type: 'EXTRACT_ARTICLE',
       });
 
-      if (!response.success) {
-        setError(response.error || 'Extraction failed');
+      if (!response.success || !response.textContent || response.textContent.length < 200) {
+        setError('No article content found. Please open a specific news article.');
         setLoading(false);
         return;
       }
@@ -35,7 +55,7 @@ const App: React.FC = () => {
       const extractedText = response.textContent || '';
       const extractedUrl = tab.url || '';
 
-      const data = await analyzeText(extractedText, extractedUrl);
+      const data = await analyzeText(extractedText, extractedUrl, extractedTitle);
 
       // Store results and open full results page
       await chrome.storage.local.set({

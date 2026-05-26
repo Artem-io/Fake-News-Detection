@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import type { AnalysisResult, ModuleDecision, LinguisticSignal, LinguisticFlag, MatchedSource } from './Api';
 import './Results.css';
 
-// ── helpers ──────────────────────────────────────────────────────────────────
 
 function verdict(result: AnalysisResult): 'fake' | 'real' | 'uncertain' {
   const p = result.prediction?.toLowerCase() ?? '';
@@ -46,10 +45,8 @@ function similarityColor(sim: number) {
   return '#94a3b8';
 }
 
-// Circumference for r=50 circle
 const CIRC = 2 * Math.PI * 50;
 
-// ── sub-components ────────────────────────────────────────────────────────────
 
 function Gauge({ value, cls }: { value: number; cls: 'fake' | 'real' | 'uncertain' }) {
   const offset = CIRC * (1 - value);
@@ -118,7 +115,6 @@ function SourceRow({ s }: { s: MatchedSource }) {
   );
 }
 
-// ── main component ────────────────────────────────────────────────────────────
 
 const Results: React.FC = () => {
   const [result, setResult] = useState<AnalysisResult | null>(null);
@@ -306,12 +302,6 @@ const Results: React.FC = () => {
           )}
         </div>
       )}
-
-      {/* Raw Response */}
-      <div className="card raw-response-card">
-        <div className="card-title">Raw Backend Response</div>
-        <pre className="raw-response-pre">{JSON.stringify(result, null, 2)}</pre>
-      </div>
 
     </div>
   );

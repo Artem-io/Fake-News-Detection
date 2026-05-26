@@ -33,26 +33,24 @@ function cleanDom(doc: Document): void {
 
 function cleanExtractedText(text: string): string {
   return text
-    // Trim first 100 characters then skip to the next word boundary
-    .substring(100).replace(/^\S*\s*/, '')
-    // Remove editorial/reporting credits (e.g. "Reporting by X; Editing by Y")
+    // Remove editorial/reporting credits
     .replace(/\b(Reporting|Editing|Writing|Compiled|Additional reporting)\s+by\b.*$/gm, '')
-    // Remove "Our Standards: ..." trust principle lines
+    // Remove trust principle lines
     .replace(/Our Standards:.*$/gm, '')
     // Remove ", opens new tab" link artifacts
     .replace(/,?\s*opens new tab/gi, '')
-    // Remove relative timestamps anywhere in text (e.g. "7 hours ago")
+    // Remove relative timestamps (e.g. "7 hours ago")
     .replace(/\d+\s+(seconds?|minutes?|mins?|hours?|days?|weeks?|months?|years?)\s+ago/gi, '')
-    // Remove site names (even inline)
+    // Remove site names
     .replace(/\b(Reuters|BBC|CNN|AP|AFP|Associated Press|Bloomberg)\b/g, '')
     // Remove "Summary" at the start of text or on its own line
     .replace(/^Summary\s*/i, '')
     .replace(/^\s*Summary\s*$/gim, '')
     // Remove photo/image credit lines
     .replace(/^\s*(Getty Images|Reuters|AP Photo|AFP|EPA).*$/gm, '')
-    // Ensure space between words that got joined (e.g. "end.Start" -> "end. Start")
+    // Ensure space between words that got joined
     .replace(/([a-z])([A-Z])/g, '$1 $2')
-    // Add space after periods/commas/colons not followed by space
+    // Add space after periods/commas not followed by space
     .replace(/([.,:;!?])([A-Za-z])/g, '$1 $2')
     // Collapse multiple spaces into one
     .replace(/ {2,}/g, ' ')
@@ -64,7 +62,7 @@ function cleanExtractedText(text: string): string {
 }
 
 function paragraphFallback(): string {
-  // Last resort: collect all <p> text longer than 40 chars, skipping nav/UI noise.
+  // Fallback: collect all <p> text longer than 40 chars
   return Array.from(document.querySelectorAll('p'))
     .map((p) => p.textContent?.trim() ?? '')
     .filter((t) => t.length > 40)
@@ -81,8 +79,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       let article = new Readability(cleanedClone).parse();
 
       // Attempt 2: Readability on raw DOM — cleanDom may have stripped content the
-      // heuristic needed to identify the article body (e.g. CounterPunch wraps
-      // its article in a <header> which cleanDom removes).
       if (!article) {
         const rawClone = document.cloneNode(true) as Document;
         article = new Readability(rawClone).parse();
@@ -132,6 +128,5 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     }
   }
 
-  // Return true to indicate sendResponse will be called asynchronously
   return true;
 });

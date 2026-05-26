@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "https://Artemi0-fake-news-detector.hf.space";
 
 export interface ModuleDecision {
   module: string;
@@ -32,6 +32,7 @@ export interface Linguistic {
   score: number;
   flags: LinguisticFlag[];
   explanation: LinguisticExplanation;
+  headline_consistency: number | null;
 }
 
 export interface MatchedSource {
@@ -59,7 +60,7 @@ export interface AnalysisResult {
   cross_source: CrossSource;
 }
 
-export async function analyzeText(text: string, url: string): Promise<AnalysisResult> {
-  const response = await axios.post<AnalysisResult>(`${BASE_URL}/analyze`, { text, url });
+export async function analyzeText(text: string, url: string, title: string = ""): Promise<AnalysisResult> {
+  const response = await axios.post<AnalysisResult>(`${BASE_URL}/analyze`, { text, url, title });
   return response.data;
 }

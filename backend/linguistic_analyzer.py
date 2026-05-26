@@ -40,7 +40,7 @@ EMOTIONAL_WORDS_POSITIVE = {
     'miraculous', 'miracle', 'genius',
 }
 
-# Urgency / time pressure — single words matched against tokens, phrases against full text
+# Urgency / time pressure - single words matched against tokens, phrases against full text
 URGENCY_WORDS = {'hurry', 'quick', 'fast'}
 URGENCY_PHRASES = [
     'before it\'s too late', 'last chance', 'limited time',
@@ -140,7 +140,6 @@ CONSPIRACY_PHRASES = [
 
 
 # Data structures
-
 @dataclass
 class LinguisticFeatures:
     word_count: int = 0
@@ -189,7 +188,6 @@ class AnalysisResult:
 
 
 # Analyzer
-
 class LinguisticAnalyzer:
 
     def __init__(self, nlp=None):
@@ -206,8 +204,7 @@ class LinguisticAnalyzer:
 
         self.vader = SentimentIntensityAnalyzer()
 
-        # NLI pipeline for headline-body consistency
-        # cross-encoder/nli-deberta-v3-small (~184 MB, CPU-friendly)
+        # NLI for headline-body consistency
         self._nli = None
         try:
             from transformers import pipeline as hf_pipeline
